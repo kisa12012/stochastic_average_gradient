@@ -1,0 +1,12 @@
+#!/usr/bin/python
+
+def build(bld):
+      bld.stlib(source       = 'lcsgd.cc',
+                name         = 'lcsgd',
+                target       = 'lcsgd',
+                includes     = '.')
+
+      bld.program(source     = 'main.cc',
+                  name       = 'lcsgd_main',
+                  target     = 'lcsgd_main',
+                  use        = 'lcsgd')

@@ -1,0 +1,22 @@
+#ifndef LCSGD_TOOLS_H_
+#define LCSGD_TOOLS_H_
+
+#include <Eigen/Dense>
+#include <Eigen/SparseCore>
+
+namespace lcsgd {
+typedef Eigen::VectorXd dense_vector_t;
+typedef Eigen::SparseVector<double> sparse_vector_t;
+typedef int binary_label_t;
+
+typedef std::pair<int, double> feature_t;
+typedef std::vector<feature_t> features_t;
+struct datum_t {
+  features_t features;
+  binary_label_t label;
+};
+typedef std::vector<datum_t> data_t;
+
+} // namespace lcsgd
+
+#endif //LCSGD_TOOLS_H_
