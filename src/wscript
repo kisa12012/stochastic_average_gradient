@@ -1,10 +1,10 @@
 #!/usr/bin/python
 
 def build(bld):
-      bld.stlib(source       = 'lcsgd.cc',
+      bld.stlib(source       = 'sgd.cc lcsgd.cc',
                 name         = 'lcsgd',
                 target       = 'lcsgd',
-                includes     = '.')
+                uselib       = 'eigen')
 
       bld.program(source     = 'main.cc',
                   name       = 'lcsgd_main',

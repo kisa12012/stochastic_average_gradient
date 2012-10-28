@@ -1,15 +1,15 @@
-#ifndef LCSGD_LCSGD_H_
-#define LCSGD_LCSGD_H_
+#ifndef LCSGD_SGD_H_
+#define LCSGD_SGD_H_
 
 #include <vector>
 #include <random>
 #include "tools.h"
 
 namespace lcsgd {
-class LCSGD {
+class SGD {
  public:
-  explicit LCSGD();
-  ~LCSGD();
+  explicit SGD();
+  ~SGD();
 
   void LoadData(const data_t& data);
   int Update(int UpdateN);
@@ -22,26 +22,23 @@ class LCSGD {
   void Initialize();
 
   void UpdateOnce();
-  void UpdateAverageSubgradient(int index);
-  void AddSubgradient2AS(int index, double coeff);
+  void UpdateWeight(int index);
 
-  double CalcNewCoeff(int index);
+  void CalcSubgradient(int index);
   double CalcScore(const datum_t& datum);
 
   int updateN_;
-  double alpha_; // alpha = (1.0 / (lambda + max \| x \|))
+  double alpha_;
   double lambda_;
 
   std::mt19937 engine_;
 
   data_t data_;
   dense_vector_t weight_;
-  dense_vector_t average_subgradient_;
-
-  std::vector<double> latest_coeffs_;
+  sparse_vector_t subgradient_;
 };
 
 } //namespace lcsgd
 
-#endif //LCSGD_LCSGD_H_
+#endif //LCSGD_SGD_H_
 

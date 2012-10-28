@@ -4,7 +4,7 @@
 #include <iostream>
 
 namespace lcsgd {
-LCSGD::LCSGD() : updateN_(0), alpha_(0.1), lambda_(0.1) {}
+LCSGD::LCSGD() : updateN_(0), alpha_(20.0), lambda_(0.00001) {}
 
 LCSGD::~LCSGD() {}
 
@@ -14,7 +14,7 @@ void LCSGD::LoadData(const data_t& data) {
 }
 
 void LCSGD::Initialize() {
-  std::vector<sparse_vector_t>(data_.data_size).swap(subgradients_);
+  std::vector<double>(data_.data_size).swap(latest_coeffs_);
   weight_ = dense_vector_t::Zero(data_.max_feature_id + 1);
   average_subgradient_ = dense_vector_t::Zero(data_.max_feature_id + 1);
 }
@@ -37,45 +37,48 @@ void LCSGD::UpdateOnce() {
 }
 
 void LCSGD::UpdateAverageSubgradient(int index) {
-  AddSubgradient2AS(index, -1);
-  CalcSubgradient(index);
-  AddSubgradient2AS(index, 1);
+  double prev_coeff = latest_coeffs_[index];
+  double current_coeff = CalcNewCoeff(index);
+  latest_coeffs_[index] = current_coeff;
+  AddSubgradient2AS(index, current_coeff - prev_coeff);
 }
 
 void LCSGD::AddSubgradient2AS(int index, double coeff) {
-  const sparse_vector_t& sv = subgradients_[index];
-  for (auto it = sv.begin(); it != sv.end(); ++it) {
+  const features_t& fv = data_.examples[index].features;
+  for (auto it = fv.begin(); it != fv.end(); ++it) {
     average_subgradient_(it->first) += coeff * it->second;
   }
 }
 
-void LCSGD::CalcSubgradient(int index) {
+double LCSGD::CalcNewCoeff(int index) {
   const datum_t& datum = data_.examples[index];
   double score = CalcScore(datum);
 
-  // std::cout << weight_.transpose() << std::endl;
-  std::cout << score << std::endl;
-
   double coeff = - datum.label * (1.0 / (std::exp(score) + 1.0));
-  std::cout << "coeff : " << coeff << std::endl;
-
-  sparse_vector_t& sv = subgradients_[index];
-  const features_t& features = datum.features;
-  for (auto it = features.begin(); it != features.end(); ++it) {
-    sv[it->first] = coeff * it->second;
-  }
+  return coeff;
 }
 
 double LCSGD::CalcScore(const datum_t& datum) {
   const features_t& features = datum.features;
   const binary_label_t& label = datum.label;
-  
+
   double score = 0.0;
   for (auto it = features.begin(); it != features.end(); ++it) {
     score += weight_(it->first) * it->second;
   }
 
   return label * score;
+}
+
+double LCSGD::Evaluation() {
+  double result = 0.0;
+  for (auto it = data_.examples.begin(); it != data_.examples.end(); ++it) {
+    double score = CalcScore(*it);
+    result += std::log(1.0 + std::exp(-score));
+  }
+
+  result += weight_.norm();
+  return result;
 }
 
 } //namespace lcsgd
